@@ -14,7 +14,11 @@
     <div class="brand">sak_Uta <span>NEXT</span></div>
     <div class="sub">次に歌う曲を選ぶ</div>
   </div>
-  <button class="iconbtn" id="infoBtn" aria-label="情報">ⓘ</button>
+  <div class="headActions">
+    <span id="syncStatus" class="syncStatus" title="Google Sheets同期状態">固定データ</span>
+    <button class="iconbtn" id="syncBtn" aria-label="シートを再読み込み">↻</button>
+    <button class="iconbtn" id="infoBtn" aria-label="情報">ⓘ</button>
+  </div>
 </header>
 
 <main>
@@ -67,7 +71,8 @@
     <h2>sak_Uta NEXT</h2>
     <p>次に歌う候補をスマホで選ぶための試作版です。</p>
     <p><b>音域負荷</b>：★が多いほど、今の歌唱能力に対する負荷が高い想定です。</p>
-    <p><b>歌準備アプリ連携</b>：<code>app.js</code> の <code>PREP_APP_URL</code> に準備アプリURLを設定すると、曲名・アーティスト・推奨キーを渡せます。</p>
+    <p><b>Google Sheets同期</b>：候補シートを「リンクを知っている全員：閲覧者」にすると、サイト起動時と↻ボタンで最新データを読み込みます。</p>
+    <p><b>歌準備アプリ連携</b>：<code>config.js</code> の <code>PREP_APP_URL</code> に準備アプリURLを設定すると、曲名・アーティスト・推奨キーを渡せます。</p>
     <button id="closeInfo" class="primary">閉じる</button>
   </div>
 </dialog>
