@@ -1,0 +1,9 @@
+{
+  "name": "sak_Uta NEXT",
+  "short_name": "sakNEXT",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0a0a0c",
+  "theme_color": "#0a0a0c",
+  "description": "次に歌う曲を選ぶ候補アプリ"
+}
