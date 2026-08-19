@@ -69,9 +69,9 @@
 <dialog id="info">
   <div class="infoPane">
     <h2>sak_Uta NEXT</h2>
-    <p>次に歌う候補をスマホで選ぶための試作版です。</p>
-    <p><b>音域負荷</b>：★が多いほど、今の歌唱能力に対する負荷が高い想定です。</p>
-    <p><b>Google Sheets同期</b>：候補シートを「リンクを知っている全員：閲覧者」にすると、サイト起動時と↻ボタンで最新データを読み込みます。</p>
+    <p>次に歌う候補をスマホで選ぶためのWebアプリです。</p>
+    <p><b>音域負荷</b>：★が多いほど、現在の歌唱能力に対する負荷が高い想定です。</p>
+    <p><b>Google Sheets同期</b>：候補シートからサイト起動時と↻ボタンで最新データを読み込みます。</p>
     <p><b>歌準備アプリ連携</b>：<code>config.js</code> の <code>PREP_APP_URL</code> に準備アプリURLを設定すると、曲名・アーティスト・推奨キーを渡せます。</p>
     <button id="closeInfo" class="primary">閉じる</button>
   </div>
@@ -80,5 +80,6 @@
 <script src="config.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script src="sheet-sync-jsonp.js"></script>
 </body>
 </html>
