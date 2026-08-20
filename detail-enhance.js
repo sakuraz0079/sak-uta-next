@@ -44,7 +44,7 @@
     if (!x) return;
     const body = document.getElementById("detailBody");
     const favBtn = document.getElementById("favBtn");
-    const cmp = vocalComparison(x);
+    const readiness = window.SAK_UTA_READINESS?.judge(x, window.SAK_UTA_CONFIG?.VOCAL_PROFILE || {}) || null;
 
     favBtn.textContent = (typeof favs !== "undefined" && favs.has(favKey(x))) ? "★" : "☆";
     favBtn.onclick = () => {
@@ -53,15 +53,27 @@
     };
 
     const noteLabel = x.topNote && x.topNoteIntl ? `${x.topNote}（${x.topNoteIntl}）` : (x.topNote || x.topNoteIntl || "");
+    const adjustedLabel = readiness?.adjustedMidi != null
+      ? `${window.SAK_UTA_READINESS.midiToKaraoke(readiness.adjustedMidi)}（${window.SAK_UTA_READINESS.midiToIntl(readiness.adjustedMidi)}）`
+      : "未設定";
+    const readinessCard = readiness ? `
+      <section class="sdReadiness ${esc(readiness.level)}">
+        <div class="sdReadinessHead">
+          <div><small>歌えるか判断</small><strong>${esc(readiness.label)}</strong></div>
+          <span>${readiness.source === "trial" ? "試唱結果を優先" : readiness.source === "theory" ? "データから暫定判定" : "追加調査が必要"}</span>
+        </div>
+        <div class="sdPitchCompare">
+          <div><small>原曲キーの最高音</small><b>${esc(noteLabel || "未調査")}</b></div>
+          <div><small>想定キーの最高音</small><b>${esc(adjustedLabel)}</b></div>
+        </div>
+        <ul>${readiness.reasons.map(reason => `<li>${esc(reason)}</li>`).join("")}</ul>
+      </section>` : "";
     const highSection = noteLabel ? `
       <section class="sdPitchCard">
         <div class="sdPitchTop">
-          <div><small>最高音</small><strong>${esc(noteLabel)}</strong></div>
+          <div><small>原曲の高音情報</small><strong>${esc(noteLabel)}</strong></div>
           ${x.confidence ? `<span class="confidence">確度 ${esc(x.confidence)}</span>` : ""}
         </div>
-        ${cmp ? `<div class="vocalCompare ${cmp.cls}">
-          <span>${cmp.icon}</span><div><b>${cmp.label}</b><small>${esc(cmp.text)}</small></div>
-        </div>` : ""}
         ${x.highNoteFeature ? `<p>${esc(x.highNoteFeature)}</p>` : ""}
       </section>` : "";
 
@@ -78,6 +90,8 @@
         </div>
       </section>
 
+      ${readinessCard}
+
       <section class="sdScores">
         <div>知名度<b>${stars(x.fame)}</b></div>
         <div>音域負荷<b>${stars(x.load)}</b></div>
@@ -85,6 +99,13 @@
       </section>
 
       ${highSection}
+
+      ${(x.highFrequency || x.highHold || x.highContinuity || x.chorusLoad) ? `<section class="sdLoadGrid">
+        ${x.highFrequency ? `<div><small>高音頻度</small><b>${esc(x.highFrequency)}</b></div>` : ""}
+        ${x.highHold ? `<div><small>高音保持</small><b>${esc(x.highHold)}</b></div>` : ""}
+        ${x.highContinuity ? `<div><small>高音連続性</small><b>${esc(x.highContinuity)}</b></div>` : ""}
+        ${x.chorusLoad ? `<div><small>サビ平均負荷</small><b>${esc(x.chorusLoad)}</b></div>` : ""}
+      </section>` : ""}
 
       <section class="sdRows">
         ${x.originalKey ? `<div><small>原曲キー</small><strong>${esc(x.originalKey)}</strong></div>` : ""}

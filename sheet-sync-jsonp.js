@@ -19,7 +19,10 @@
       key: ix("推奨キー"), reason: ix("選曲理由"), test: ix("試唱結果"),
       retake: ix("再録理由"), originalKey: ix("原曲キー"), topNote: ix("最高音"),
       topNoteIntl: ix("最高音(国際式)"), highNoteFeature: ix("高音特徴"),
-      confidence: ix("情報確度"), imageUrl: ix("画像URL"), sourceUrl: ix("情報ソース")
+      confidence: ix("情報確度"), imageUrl: ix("画像URL"), sourceUrl: ix("情報ソース"),
+      keyShift: ix("想定キー差"), octaveShift: ix("オクターブ調整"),
+      highFrequency: ix("高音頻度"), highHold: ix("高音保持"),
+      highContinuity: ix("高音連続性"), chorusLoad: ix("サビ平均負荷"), trialRating: ix("試唱判定")
     };
     const v = (r, i) => i < 0 ? "" : (r.c?.[i]?.f ?? r.c?.[i]?.v ?? "");
 
@@ -40,7 +43,14 @@
       highNoteFeature: String(v(r, I.highNoteFeature) || "").trim(),
       confidence: String(v(r, I.confidence) || "").trim(),
       imageUrl: String(v(r, I.imageUrl) || "").trim(),
-      sourceUrl: String(v(r, I.sourceUrl) || "").trim()
+      sourceUrl: String(v(r, I.sourceUrl) || "").trim(),
+      keyShift: String(v(r, I.keyShift) ?? "").trim(),
+      octaveShift: String(v(r, I.octaveShift) ?? "").trim(),
+      highFrequency: String(v(r, I.highFrequency) || "").trim(),
+      highHold: String(v(r, I.highHold) || "").trim(),
+      highContinuity: String(v(r, I.highContinuity) || "").trim(),
+      chorusLoad: String(v(r, I.chorusLoad) || "").trim(),
+      trialRating: String(v(r, I.trialRating) || "").trim()
     }));
   };
 
