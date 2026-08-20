@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check app.js && node --check sheet-sync-jsonp.js && node --check sheet-write.js && node --check readiness.js && node --check detail-enhance.js",
+    "check": "node --check app.js && node --check sheet-sync-jsonp.js && node --check sheet-write.js && node --check readiness.js && node --check detail-enhance.js && node --check candidate-add.js",
     "test": "node --test test/*.test.mjs"
   }
 }

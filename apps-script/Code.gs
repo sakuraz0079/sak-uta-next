@@ -9,7 +9,8 @@ function doPost(e) {
   try {
     const p = e.parameter || {};
     const row = Number(p.row);
-    if (!Number.isInteger(row) || row < 2 || row > 999) throw new Error("invalid row");
+    const isAdd = p.action === "add";
+    if (!isAdd && (!Number.isInteger(row) || row < 2 || row > 999)) throw new Error("invalid row");
 
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
@@ -18,9 +19,11 @@ function doPost(e) {
       if (index < 0) throw new Error("missing header: " + name);
       return index + 1;
     };
-    const artist = sheet.getRange(row, col("アーティスト")).getDisplayValue();
-    const title = sheet.getRange(row, col("曲名")).getDisplayValue();
-    if (artist !== String(p.artist || "") || title !== String(p.title || "")) throw new Error("song mismatch");
+    if (!isAdd) {
+      const artist = sheet.getRange(row, col("アーティスト")).getDisplayValue();
+      const title = sheet.getRange(row, col("曲名")).getDisplayValue();
+      if (artist !== String(p.artist || "") || title !== String(p.title || "")) throw new Error("song mismatch");
+    }
 
     if (p.action === "trial") {
       const allowed = ["未試唱", "余裕", "歌える", "苦しい", "不可"];
@@ -42,6 +45,31 @@ function doPost(e) {
       sheet.getRange(row, col("歌唱済み日")).setValue(new Date());
       if (currentStatus !== "歌唱済") sheet.getRange(row, col("歌唱済み前ステータス")).setValue(currentStatus || "候補");
       sheet.getRange(row, col("ステータス")).setValue("歌唱済");
+    } else if (p.action === "add") {
+      const allowed = ["⭐有力", "候補", "挑戦", "穴候補", "リクエスト", "再録候補", "再挑戦", "コラボ", "保留"];
+      const newArtist = String(p.artist || "").trim().slice(0, 200);
+      const newTitle = String(p.title || "").trim().slice(0, 200);
+      const newStatus = String(p.status || "候補");
+      if (!newArtist || !newTitle) throw new Error("artist and title are required");
+      if (!allowed.includes(newStatus)) throw new Error("invalid status");
+
+      const normalize = value => String(value || "").trim().toLocaleLowerCase();
+      const lastRow = sheet.getLastRow();
+      if (lastRow >= 2) {
+        const artists = sheet.getRange(2, col("アーティスト"), lastRow - 1, 1).getDisplayValues();
+        const titles = sheet.getRange(2, col("曲名"), lastRow - 1, 1).getDisplayValues();
+        const duplicateIndex = artists.findIndex((value, index) =>
+          normalize(value[0]) === normalize(newArtist) && normalize(titles[index][0]) === normalize(newTitle)
+        );
+        if (duplicateIndex >= 0) return output_({ ok: true, duplicate: true, row: duplicateIndex + 2 });
+      }
+
+      const nextRow = lastRow + 1;
+      sheet.getRange(nextRow, col("ステータス")).setValue(newStatus);
+      sheet.getRange(nextRow, col("アーティスト")).setValue(newArtist);
+      sheet.getRange(nextRow, col("曲名")).setValue(newTitle);
+      sheet.getRange(nextRow, col("推奨キー")).setValue(String(p.key || "").trim().slice(0, 100));
+      sheet.getRange(nextRow, col("選曲理由")).setValue(String(p.reason || "").trim().slice(0, 1000));
     } else if (p.action === "restore") {
       const currentStatus = sheet.getRange(row, col("ステータス")).getDisplayValue();
       const previousHeader = currentStatus === "歌唱済" ? "歌唱済み前ステータス" : "見送り前ステータス";
