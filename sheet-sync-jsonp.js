@@ -53,7 +53,10 @@
       const fail = err => {
         clearTimeout(timer); cleanup();
         console.warn("Google Sheets JSONP sync failed:", err);
-        if (typeof setSyncStatus === "function") setSyncStatus("同期失敗", "error");
+        const cachedCount = Array.isArray(data) ? data.length : 0;
+        if (typeof setSyncStatus === "function") {
+          setSyncStatus(cachedCount ? `同期失敗・前回データ ${cachedCount}曲` : "同期失敗", "error");
+        }
         resolve(false);
       };
       const timer = setTimeout(() => fail(new Error("timeout")), 12000);
@@ -64,6 +67,7 @@
           const next = fromTable(res.table);
           if (!next.length) throw new Error("0 rows");
           data.splice(0, data.length, ...next);
+          try { localStorage.setItem("sakUtaNextSheetCacheV1", JSON.stringify(next)); } catch (e) {}
           if (typeof setSyncStatus === "function") setSyncStatus(`同期済 ${next.length}曲`, "ok");
           if (typeof render === "function") render();
           clearTimeout(timer); cleanup(); resolve(true);

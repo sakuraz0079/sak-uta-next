@@ -6,7 +6,7 @@
 #detailBody{overflow:auto;padding:10px 16px 30px}
 .sdArt{height:180px;border-radius:18px;border:1px solid #303038;background:radial-gradient(circle at 70% 25%,#49326c,#211a2d 34%,#151519 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
 .sdArt b{font-size:55px}.sdArt span{opacity:.55;font-size:12px;letter-spacing:.12em;margin-top:7px}
-.sdArt.hasImage{background:#111}.sdArt.hasImage img{width:100%;height:100%;object-fit:cover}
+.sdArt.hasImage{position:relative;background:#111}.sdArt.hasImage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .sdTitle{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;padding:17px 2px 12px}
 .sdTitle h1{font-size:27px;margin:7px 0 3px}.sdTitle p{margin:0;color:#b8b8c0}.sdTitle>strong{border:1px solid #45454e;border-radius:10px;padding:9px 12px}
 .sdScores{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:13px 0;border-block:1px solid #29292f;font-size:11px;color:#aaaab3}

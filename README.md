@@ -20,7 +20,7 @@ GitHubユーザー名が `sakuraz0079` の場合:
 - `index.html` : メイン画面
 - `styles.css` : UI
 - `app.js` : 検索・フィルタ・お気に入り・詳細画面
-- `data.js` : 現在の候補データ
+- Google Sheetsから取得した最新データを正本とし、同期成功時のデータのみ端末に保存
 - `config.js` : Google Sheets / 歌準備アプリ連携設定
 - `manifest.webmanifest` : PWA設定
 - `sw.js` : オフラインキャッシュ
@@ -28,7 +28,7 @@ GitHubユーザー名が `sakuraz0079` の場合:
 
 ## 次段階
 ### Google Sheets 自動同期
-`config.js` の `SHEET_DATA_URL` に、候補シートをJSON化して返す公開エンドポイントを設定します。
+`config.js` の `SHEET_GVIZ_URL` からGoogle Visualization APIをJSONPで読み込みます。
 
 ### 歌準備アプリ連携
 `config.js` の `PREP_APP_URL` に準備アプリURLを設定します。
