@@ -23,7 +23,8 @@ function makeReorderedExtendedTable() {
     ["曲名", "Extended Song"], ["高音保持", "ロング"], ["アーティスト", "Extended Artist"],
     ["試唱判定", "苦しい"], ["想定キー差", -2], ["最高音(国際式)", "B4"],
     ["ステータス", "⭐有力"], ["オクターブ調整", -1], ["高音頻度", "多"],
-    ["高音連続性", "高"], ["サビ平均負荷", "中"]
+    ["高音連続性", "高"], ["サビ平均負荷", "中"], ["見送り理由", "高音が厳しい"],
+    ["見送りメモ", "半音下げで再挑戦"], ["見送り日", "2026/08/20"], ["見送り前ステータス", "⭐有力"]
   ];
   return {
     cols: entries.map(([label]) => ({ label })),
@@ -64,12 +65,14 @@ test("JSONP同期はヘッダー名からA:Qを変換し、前回データを保
 
   assert.equal(data.length, 1);
   assert.deepEqual(JSON.parse(JSON.stringify(data[0])), {
+    sheetRow: 2,
     status: "候補", artist: "Test Artist", title: "Test Song", fame: 4, load: 3, identity: 5,
     key: "-1", reason: "理由", test: "", retake: "", originalKey: "Am", topNote: "hiA",
     topNoteIntl: "A4", highNoteFeature: "瞬間音", confidence: "A",
     imageUrl: "https://example.com/art.jpg", sourceUrl: "https://example.com/source",
     keyShift: "", octaveShift: "", highFrequency: "", highHold: "",
-    highContinuity: "", chorusLoad: "", trialRating: ""
+    highContinuity: "", chorusLoad: "", trialRating: "",
+    shelvedReason: "", shelvedMemo: "", shelvedDate: "", previousStatus: ""
   });
   assert.equal(JSON.parse(stored.get("sakUtaNextSheetCacheV1")).length, 1);
   assert.deepEqual(status.at(-1), ["同期済 1曲", "ok"]);
@@ -112,4 +115,8 @@ test("JSONP同期はR:Xを列順ではなくヘッダー名で読み込む", asy
   assert.equal(data[0].highContinuity, "高");
   assert.equal(data[0].chorusLoad, "中");
   assert.equal(data[0].trialRating, "苦しい");
+  assert.equal(data[0].shelvedReason, "高音が厳しい");
+  assert.equal(data[0].shelvedMemo, "半音下げで再挑戦");
+  assert.equal(data[0].shelvedDate, "2026/08/20");
+  assert.equal(data[0].previousStatus, "⭐有力");
 });

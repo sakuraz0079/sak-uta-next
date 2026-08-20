@@ -7,6 +7,11 @@
   const yt = x => "https://www.youtube.com/results?search_query=" +
                   encodeURIComponent(`${x.artist} ${x.title}`);
   const favKey = x => `${x.artist}||${x.title}`;
+  const sheetEditUrl = (x, start, end) => {
+    const base = window.SAK_UTA_CONFIG?.SHEET_EDIT_URL || "";
+    const row = Number(x.sheetRow);
+    return base && Number.isInteger(row) && row >= 2 ? `${base}&range=${start}${row}:${end}${row}` : "";
+  };
 
   const noteToMidi = note => {
     const m = String(note || "").trim().match(/^([A-Ga-g])([#b]?)(-?\d)$/);
@@ -76,6 +81,24 @@
         </div>
         ${x.highNoteFeature ? `<p>${esc(x.highNoteFeature)}</p>` : ""}
       </section>` : "";
+    const trialEditUrl = sheetEditUrl(x, "I", "X");
+    const statusEditUrl = sheetEditUrl(x, "A", "AB");
+    const isShelved = x.status === "見送り";
+    const shelvedInfo = isShelved && (x.shelvedReason || x.shelvedMemo || x.shelvedDate) ? `<article>
+      <small>見送り記録</small>
+      ${x.shelvedReason ? `<p><b>${esc(x.shelvedReason)}</b></p>` : ""}
+      ${x.shelvedMemo ? `<p>${esc(x.shelvedMemo)}</p>` : ""}
+      ${x.shelvedDate ? `<p>${esc(x.shelvedDate)}</p>` : ""}
+    </article>` : "";
+    const manageSection = (trialEditUrl || statusEditUrl) ? `<section class="sdManage">
+      <strong>候補の管理</strong>
+      ${isShelved
+        ? `<p>A列を「${esc(x.previousStatus || "候補")}」へ戻すと、通常一覧へ復帰します。</p>
+           <a class="restore" href="${esc(statusEditUrl)}" target="_blank" rel="noopener noreferrer">↩ 候補へ戻す・シートを開く</a>`
+        : `<p>試唱結果はI・X列、見送りはA列とY:AB列へ記録します。</p>
+           <a href="${esc(trialEditUrl)}" target="_blank" rel="noopener noreferrer">📝 試唱結果を記録・編集</a>
+           <a class="shelve" href="${esc(statusEditUrl)}" target="_blank" rel="noopener noreferrer">⏸ 今回は見送る・シートを開く</a>`}
+    </section>` : "";
 
     body.innerHTML = `
       <section class="sdHero">
@@ -113,6 +136,7 @@
         ${x.reason ? `<article><small>選曲理由・おすすめポイント</small><p>${esc(x.reason)}</p></article>` : ""}
         ${x.test ? `<article><small>試唱結果</small><p>${esc(x.test)}</p></article>` : ""}
         ${x.retake ? `<article><small>再録・再挑戦理由</small><p>${esc(x.retake)}</p></article>` : ""}
+        ${shelvedInfo}
       </section>
 
       <section class="sdActions">
@@ -120,6 +144,8 @@
         <button class="primary" id="prepBtn">🎤 この曲を歌う・準備へ</button>
         <button class="secondary" id="copyBtn">曲情報をコピー</button>
       </section>
+
+      ${manageSection}
 
       ${x.sourceUrl ? `<p class="sdSource"><a href="${esc(x.sourceUrl)}" target="_blank" rel="noopener noreferrer">情報ソースを開く</a></p>` : ""}
       <p class="sdNote">YouTubeで「${esc(x.artist)} ${esc(x.title)}」を検索します</p>
