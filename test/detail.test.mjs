@@ -62,6 +62,17 @@ test("候補の試唱記録と見送りを詳細画面内で入力できる", ()
   assert.match(html, /name="trialRating"/);
   assert.match(html, /今回は見送る/);
   assert.match(html, /name="reason"/);
+  assert.match(html, /投稿用に歌唱済み/);
+  assert.match(html, /id="completeForm"/);
+});
+
+test("歌唱済み曲は投稿用の記録と候補へ戻す導線を表示する", () => {
+  const html = renderDetail({ status: "歌唱済", sungMemo: "動作確認用ダミー", sungDate: "2026/08/21", sungPreviousStatus: "再挑戦" });
+  assert.match(html, /投稿用の歌唱記録/);
+  assert.match(html, /動作確認用ダミー/);
+  assert.match(html, /候補へ戻す/);
+  assert.match(html, /再挑戦/);
+  assert.doesNotMatch(html, /id="completeForm"/);
 });
 
 test("見送り曲は記録と候補へ戻す導線を表示する", () => {

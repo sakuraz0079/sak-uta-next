@@ -24,7 +24,9 @@
       highFrequency: ix("高音頻度"), highHold: ix("高音保持"),
       highContinuity: ix("高音連続性"), chorusLoad: ix("サビ平均負荷"), trialRating: ix("試唱判定"),
       shelvedReason: ix("見送り理由"), shelvedMemo: ix("見送りメモ"),
-      shelvedDate: ix("見送り日"), previousStatus: ix("見送り前ステータス")
+      shelvedDate: ix("見送り日"), previousStatus: ix("見送り前ステータス"),
+      sungMemo: ix("歌唱済みメモ"), sungDate: ix("歌唱済み日"),
+      sungPreviousStatus: ix("歌唱済み前ステータス")
     };
     const v = (r, i) => i < 0 ? "" : (r.c?.[i]?.f ?? r.c?.[i]?.v ?? "");
 
@@ -57,7 +59,10 @@
       shelvedReason: String(v(r, I.shelvedReason) || "").trim(),
       shelvedMemo: String(v(r, I.shelvedMemo) || "").trim(),
       shelvedDate: String(v(r, I.shelvedDate) || "").trim(),
-      previousStatus: String(v(r, I.previousStatus) || "").trim()
+      previousStatus: String(v(r, I.previousStatus) || "").trim(),
+      sungMemo: String(v(r, I.sungMemo) || "").trim(),
+      sungDate: String(v(r, I.sungDate) || "").trim(),
+      sungPreviousStatus: String(v(r, I.sungPreviousStatus) || "").trim()
     })).filter(x => x.title);
   };
 

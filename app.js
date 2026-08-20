@@ -11,6 +11,7 @@ function readSheetCache(){
 let data = readSheetCache();
 const state = {status:"すべて", mood:null, query:"", sort:"priority", favOnly:false};
 const favs = new Set(JSON.parse(localStorage.getItem("sakUtaNextFavs") || "[]"));
+const HISTORY_STATUSES = new Set(["歌唱済", "見送り"]);
 
 const el = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
@@ -34,8 +35,8 @@ function setSyncStatus(text,cls=""){
 }
 
 function statuses(){
-  const active=[...new Set(data.map(x=>x.status).filter(s=>s && s!=="見送り"))];
-  return ["すべて", ...active, "見送り"];
+  const active=[...new Set(data.map(x=>x.status).filter(s=>s && !HISTORY_STATUSES.has(s)))];
+  return ["すべて", ...active, "歌唱済", "見送り"];
 }
 
 function renderFilters(){
@@ -57,7 +58,7 @@ function filtered(){
   let arr = data.filter(x=>{
     const q = state.query.toLowerCase();
     const qok = !q || `${x.artist} ${x.title}`.toLowerCase().includes(q);
-    const sok = state.status==="すべて" ? x.status!=="見送り" : x.status===state.status;
+    const sok = state.status==="すべて" ? !HISTORY_STATUSES.has(x.status) : x.status===state.status;
     const fok = !state.favOnly || favs.has(keyOf(x));
     return qok && sok && fok && matchesMood(x);
   });
@@ -72,6 +73,7 @@ function filtered(){
 }
 
 function badgeClass(s){
+  if(s==="歌唱済") return "done";
   if(s.includes("挑戦")) return "challenge";
   if(s==="リクエスト") return "request";
   if(s.includes("再")) return "retry";
