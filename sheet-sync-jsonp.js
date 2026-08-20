@@ -22,11 +22,14 @@
       confidence: ix("情報確度"), imageUrl: ix("画像URL"), sourceUrl: ix("情報ソース"),
       keyShift: ix("想定キー差"), octaveShift: ix("オクターブ調整"),
       highFrequency: ix("高音頻度"), highHold: ix("高音保持"),
-      highContinuity: ix("高音連続性"), chorusLoad: ix("サビ平均負荷"), trialRating: ix("試唱判定")
+      highContinuity: ix("高音連続性"), chorusLoad: ix("サビ平均負荷"), trialRating: ix("試唱判定"),
+      shelvedReason: ix("見送り理由"), shelvedMemo: ix("見送りメモ"),
+      shelvedDate: ix("見送り日"), previousStatus: ix("見送り前ステータス")
     };
     const v = (r, i) => i < 0 ? "" : (r.c?.[i]?.f ?? r.c?.[i]?.v ?? "");
 
-    return table.rows.filter(r => String(v(r, I.title)).trim()).map(r => ({
+    return table.rows.map((r, rowIndex) => ({
+      sheetRow: rowIndex + 2,
       status: String(v(r, I.status) || "候補").trim(),
       artist: String(v(r, I.artist) || "").trim(),
       title: String(v(r, I.title) || "").trim(),
@@ -50,8 +53,12 @@
       highHold: String(v(r, I.highHold) || "").trim(),
       highContinuity: String(v(r, I.highContinuity) || "").trim(),
       chorusLoad: String(v(r, I.chorusLoad) || "").trim(),
-      trialRating: String(v(r, I.trialRating) || "").trim()
-    }));
+      trialRating: String(v(r, I.trialRating) || "").trim(),
+      shelvedReason: String(v(r, I.shelvedReason) || "").trim(),
+      shelvedMemo: String(v(r, I.shelvedMemo) || "").trim(),
+      shelvedDate: String(v(r, I.shelvedDate) || "").trim(),
+      previousStatus: String(v(r, I.previousStatus) || "").trim()
+    })).filter(x => x.title);
   };
 
   window.syncFromSheet = function () {

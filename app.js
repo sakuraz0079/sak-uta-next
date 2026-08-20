@@ -34,7 +34,8 @@ function setSyncStatus(text,cls=""){
 }
 
 function statuses(){
-  return ["すべて", ...new Set(data.map(x=>x.status).filter(Boolean))];
+  const active=[...new Set(data.map(x=>x.status).filter(s=>s && s!=="見送り"))];
+  return ["すべて", ...active, "見送り"];
 }
 
 function renderFilters(){
@@ -56,7 +57,7 @@ function filtered(){
   let arr = data.filter(x=>{
     const q = state.query.toLowerCase();
     const qok = !q || `${x.artist} ${x.title}`.toLowerCase().includes(q);
-    const sok = state.status==="すべて" || x.status===state.status;
+    const sok = state.status==="すべて" ? x.status!=="見送り" : x.status===state.status;
     const fok = !state.favOnly || favs.has(keyOf(x));
     return qok && sok && fok && matchesMood(x);
   });

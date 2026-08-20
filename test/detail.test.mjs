@@ -16,7 +16,7 @@ function renderDetail(overrides = {}) {
     detail: { showModal() {} }
   };
   const context = {
-    window: { SAK_UTA_CONFIG: { VOCAL_PROFILE: { stableTop: "A4", currentTop: "A#4" } } },
+    window: { SAK_UTA_CONFIG: { SHEET_EDIT_URL: "https://docs.google.com/spreadsheets/d/test/edit#gid=1", VOCAL_PROFILE: { stableTop: "A4", currentTop: "A#4" } } },
     document: { getElementById(id) { return elements[id]; } },
     navigator: { clipboard: { writeText: async () => {} } }
   };
@@ -24,7 +24,7 @@ function renderDetail(overrides = {}) {
   vm.runInContext(readinessSource, context);
   vm.runInContext(source, context);
   context.window.openDetail({
-    status: "候補", artist: "Artist", title: "Song", fame: 3, load: 3, identity: 3,
+    sheetRow: 2, status: "候補", artist: "Artist", title: "Song", fame: 3, load: 3, identity: 3,
     key: "", reason: "", test: "", retake: "", originalKey: "", topNote: "hiA",
     topNoteIntl: "A4", highNoteFeature: "", confidence: "", imageUrl: "", sourceUrl: "",
     ...overrides
@@ -51,4 +51,20 @@ test("画像URLが壊れても音符プレースホルダーを残す", () => {
   const html = renderDetail({ imageUrl: "https://example.com/missing.jpg" });
   assert.match(html, /<b>♫<\/b>/);
   assert.match(html, /onerror=/);
+});
+
+test("候補の試唱記録と見送り編集は該当シート行を開く", () => {
+  const html = renderDetail();
+  assert.match(html, /試唱結果を記録・編集/);
+  assert.match(html, /range=I2:X2/);
+  assert.match(html, /今回は見送る・シートを開く/);
+  assert.match(html, /range=A2:AB2/);
+});
+
+test("見送り曲は記録と候補へ戻す導線を表示する", () => {
+  const html = renderDetail({ status: "見送り", shelvedReason: "歌えなかった", shelvedMemo: "キーを下げて再挑戦", shelvedDate: "2026/08/20", previousStatus: "⭐有力" });
+  assert.match(html, /見送り記録/);
+  assert.match(html, /歌えなかった/);
+  assert.match(html, /候補へ戻す・シートを開く/);
+  assert.match(html, /⭐有力/);
 });
