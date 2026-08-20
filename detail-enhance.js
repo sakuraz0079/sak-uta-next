@@ -7,6 +7,9 @@
   const yt = x => "https://www.youtube.com/results?search_query=" +
                   encodeURIComponent(`${x.artist} ${x.title}`);
   const favKey = x => `${x.artist}||${x.title}`;
+  const optionTags = (values, current) => values.map(value =>
+    `<option value="${esc(value)}"${value === current ? " selected" : ""}>${esc(value)}</option>`
+  ).join("");
   const sheetEditUrl = (x, start, end) => {
     const base = window.SAK_UTA_CONFIG?.SHEET_EDIT_URL || "";
     const row = Number(x.sheetRow);
@@ -90,14 +93,32 @@
       ${x.shelvedMemo ? `<p>${esc(x.shelvedMemo)}</p>` : ""}
       ${x.shelvedDate ? `<p>${esc(x.shelvedDate)}</p>` : ""}
     </article>` : "";
-    const manageSection = (trialEditUrl || statusEditUrl) ? `<section class="sdManage">
+    const inlineWrite = window.SAK_UTA_SHEET_WRITE?.isReady();
+    const manageSection = inlineWrite ? `<section class="sdManage">
       <strong>候補の管理</strong>
       ${isShelved
-        ? `<p>A列を「${esc(x.previousStatus || "候補")}」へ戻すと、通常一覧へ復帰します。</p>
-           <a class="restore" href="${esc(statusEditUrl)}" target="_blank" rel="noopener noreferrer">↩ 候補へ戻す・シートを開く</a>`
-        : `<p>試唱結果はI・X列、見送りはA列とY:AB列へ記録します。</p>
-           <a href="${esc(trialEditUrl)}" target="_blank" rel="noopener noreferrer">📝 試唱結果を記録・編集</a>
-           <a class="shelve" href="${esc(statusEditUrl)}" target="_blank" rel="noopener noreferrer">⏸ 今回は見送る・シートを開く</a>`}
+        ? `<p>「${esc(x.previousStatus || "候補")}」へ戻すと通常一覧に復帰します。見送り記録は残ります。</p>
+           <button class="restore" id="restoreCandidate" type="button">↩ 候補へ戻す</button>
+           <span class="sdSaveStatus" id="restoreStatus"></span>`
+        : `<details><summary>📝 試唱結果を記録</summary>
+             <form id="trialForm">
+               <label>試唱判定<select name="trialRating">${optionTags(["未試唱", "余裕", "歌える", "苦しい", "不可"], x.trialRating || "未試唱")}</select></label>
+               <label>試唱メモ<textarea name="test" rows="3" maxlength="1000" placeholder="サビは出るが後半で苦しい、など">${esc(x.test || "")}</textarea></label>
+               <button type="submit">保存する</button><span class="sdSaveStatus"></span>
+             </form>
+           </details>
+           <details><summary>⏸ 今回は見送る</summary>
+             <form id="shelveForm">
+               <label>見送り理由<select name="reason">${optionTags(["歌えなかった", "高音が厳しい", "曲が合わなかった", "今の気分ではない", "その他"], "歌えなかった")}</select></label>
+               <label>メモ<textarea name="memo" rows="3" maxlength="1000" placeholder="キーを下げて再挑戦、など"></textarea></label>
+               <button class="shelve" type="submit">見送りにする</button><span class="sdSaveStatus"></span>
+             </form>
+           </details>`}
+    </section>` : (trialEditUrl || statusEditUrl) ? `<section class="sdManage">
+      <strong>候補の管理</strong><p>簡易入力の準備中です。現在はGoogle Sheetsから編集できます。</p>
+      ${isShelved
+        ? `<a class="restore" href="${esc(statusEditUrl)}" target="_blank" rel="noopener noreferrer">↩ 候補へ戻す・シートを開く</a>`
+        : `<a href="${esc(trialEditUrl)}" target="_blank" rel="noopener noreferrer">📝 試唱結果を記録・編集</a><a class="shelve" href="${esc(statusEditUrl)}" target="_blank" rel="noopener noreferrer">⏸ 今回は見送る・シートを開く</a>`}
     </section>` : "";
 
     body.innerHTML = `
@@ -157,6 +178,43 @@
       await navigator.clipboard.writeText(`${x.title} / ${x.artist}\n推奨キー: ${x.key || "—"}${noteLabel ? `\n最高音: ${noteLabel}` : ""}`);
       e.currentTarget.textContent = "コピーしました";
     };
+    const save = async (form, payload, verify) => {
+      const button = form.querySelector("button");
+      const status = form.querySelector(".sdSaveStatus");
+      button.disabled = true;
+      status.textContent = "保存中…";
+      try {
+        await window.SAK_UTA_SHEET_WRITE.submit(payload);
+        const updated = typeof data !== "undefined" && data.find(song => song.sheetRow === x.sheetRow);
+        if (!updated || !verify(updated)) throw new Error("反映を確認できませんでした");
+        status.textContent = "保存しました";
+        setTimeout(() => document.getElementById("detail").close(), 450);
+      } catch (error) {
+        status.textContent = "保存できませんでした。再試行してください";
+        button.disabled = false;
+      }
+    };
+    const trialForm = document.getElementById("trialForm");
+    if (trialForm) trialForm.onsubmit = event => {
+      event.preventDefault();
+      const values = new FormData(trialForm);
+      const trialRating = String(values.get("trialRating") || "未試唱");
+      const test = String(values.get("test") || "");
+      save(trialForm, { action:"trial", row:x.sheetRow, artist:x.artist, title:x.title, trialRating, test },
+        updated => updated.trialRating === trialRating && updated.test === test);
+    };
+    const shelveForm = document.getElementById("shelveForm");
+    if (shelveForm) shelveForm.onsubmit = event => {
+      event.preventDefault();
+      const values = new FormData(shelveForm);
+      const reason = String(values.get("reason") || "");
+      const memo = String(values.get("memo") || "");
+      save(shelveForm, { action:"shelve", row:x.sheetRow, artist:x.artist, title:x.title, reason, memo },
+        updated => updated.status === "見送り" && updated.shelvedReason === reason && updated.shelvedMemo === memo);
+    };
+    const restoreButton = document.getElementById("restoreCandidate");
+    if (restoreButton) restoreButton.onclick = () => save(restoreButton.parentElement,
+      { action:"restore", row:x.sheetRow, artist:x.artist, title:x.title }, updated => updated.status !== "見送り");
 
     window.sakUtaDetailReturnY = window.scrollY;
     document.getElementById("detail").showModal();
