@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0b0d">
 <title>sak_Uta NEXT</title>
-<link rel="manifest" href="manifest.webmanifest?v=20260821-11">
-<link rel="stylesheet" href="styles.css?v=20260821-11">
-<link rel="stylesheet" href="detail-enhance.css?v=20260821-11">
+<link rel="manifest" href="manifest.webmanifest?v=20260821-12">
+<link rel="stylesheet" href="styles.css?v=20260821-12">
+<link rel="stylesheet" href="detail-enhance.css?v=20260821-12">
 </head>
 <body>
 <header class="topbar">
@@ -25,6 +25,7 @@
 <main>
   <section class="searchbox">
     <input id="search" type="search" placeholder="曲名・アーティストで検索">
+    <button id="addCandidateBtn" type="button">＋ 新しい候補を追加</button>
   </section>
 
   <section class="mood">
@@ -67,6 +68,36 @@
   <div id="detailBody"></div>
 </dialog>
 
+<dialog id="addCandidate">
+  <div class="modalHead">
+    <button id="closeAddCandidate" class="iconbtn" type="button" aria-label="閉じる">‹</button>
+    <strong>新しい候補を追加</strong>
+    <span></span>
+  </div>
+  <form id="addCandidateForm" class="candidateForm">
+    <p>まずは最低限の情報だけ登録できます。音域などは後から追加できます。</p>
+    <label>アーティスト <b>必須</b><input name="artist" maxlength="200" autocomplete="off" required></label>
+    <label>曲名 <b>必須</b><input name="title" maxlength="200" autocomplete="off" required></label>
+    <label>ステータス
+      <select name="status">
+        <option value="候補">候補</option>
+        <option value="⭐有力">⭐有力</option>
+        <option value="挑戦">挑戦</option>
+        <option value="穴候補">穴候補</option>
+        <option value="リクエスト">リクエスト</option>
+        <option value="再録候補">再録候補</option>
+        <option value="再挑戦">再挑戦</option>
+        <option value="コラボ">コラボ</option>
+        <option value="保留">保留</option>
+      </select>
+    </label>
+    <label>推奨キー <input name="key" maxlength="100" placeholder="原キーから試す、-1 など"></label>
+    <label>選曲理由 <textarea name="reason" rows="4" maxlength="1000" placeholder="歌ってみたい理由や候補に入れたきっかけ"></textarea></label>
+    <button class="primary" type="submit">候補へ登録する</button>
+    <span id="addCandidateStatus" class="formStatus" aria-live="polite"></span>
+  </form>
+</dialog>
+
 <dialog id="info">
   <div class="infoPane">
     <h2>sak_Uta NEXT</h2>
@@ -78,12 +109,13 @@
   </div>
 </dialog>
 
-<script src="config.js?v=20260821-11"></script>
-<script src="app.js?v=20260821-11"></script>
-<script src="sheet-sync-jsonp.js?v=20260821-11"></script>
-<script src="sheet-write.js?v=20260821-11"></script>
-<script src="readiness.js?v=20260821-11"></script>
-<script src="detail-enhance.js?v=20260821-11"></script>
+<script src="config.js?v=20260821-12"></script>
+<script src="app.js?v=20260821-12"></script>
+<script src="sheet-sync-jsonp.js?v=20260821-12"></script>
+<script src="sheet-write.js?v=20260821-12"></script>
+<script src="readiness.js?v=20260821-12"></script>
+<script src="detail-enhance.js?v=20260821-12"></script>
+<script src="candidate-add.js?v=20260821-12"></script>
 <script>
 (async () => {
   if ("serviceWorker" in navigator) {
