@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
 
+const readinessSource = await readFile(new URL("../readiness.js", import.meta.url), "utf8");
 const source = await readFile(new URL("../detail-enhance.js", import.meta.url), "utf8");
 
 function renderDetail(overrides = {}) {
@@ -20,6 +21,7 @@ function renderDetail(overrides = {}) {
     navigator: { clipboard: { writeText: async () => {} } }
   };
   vm.createContext(context);
+  vm.runInContext(readinessSource, context);
   vm.runInContext(source, context);
   context.window.openDetail({
     status: "候補", artist: "Artist", title: "Song", fame: 3, load: 3, identity: 3,
@@ -30,17 +32,18 @@ function renderDetail(overrides = {}) {
   return body.innerHTML;
 }
 
-test("最高音は日本式（国際式）と安定域内を表示する", () => {
-  const html = renderDetail();
+test("最高音は日本式（国際式）と歌唱判断を表示する", () => {
+  const html = renderDetail({ keyShift: "0", octaveShift: "0", highFrequency: "少", highHold: "瞬間", highContinuity: "低", chorusLoad: "低" });
   assert.match(html, /hiA（A4）/);
-  assert.match(html, /現在の安定域上限以内/);
+  assert.match(html, /歌えるか判断/);
+  assert.match(html, />余裕</);
   assert.doesNotMatch(html, /推奨キー/);
   assert.doesNotMatch(html, /選曲理由・おすすめポイント/);
 });
 
-test("B4は現在の上限より1半音高いチャレンジ域", () => {
-  const html = renderDetail({ topNote: "hiB", topNoteIntl: "B4" });
-  assert.match(html, /チャレンジ域/);
+test("B4は現在の上限より1半音高い挑戦判定", () => {
+  const html = renderDetail({ topNote: "hiB", topNoteIntl: "B4", keyShift: "0", octaveShift: "0", highFrequency: "少", highHold: "瞬間", highContinuity: "低", chorusLoad: "低" });
+  assert.match(html, />挑戦</);
   assert.match(html, /現在の上限より1半音高い/);
 });
 

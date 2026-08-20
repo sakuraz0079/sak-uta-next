@@ -18,6 +18,19 @@ function makeTable() {
   return { cols: headers.map(label => ({ label })), rows: [{ c: values.map(v => ({ v })) }] };
 }
 
+function makeReorderedExtendedTable() {
+  const entries = [
+    ["曲名", "Extended Song"], ["高音保持", "ロング"], ["アーティスト", "Extended Artist"],
+    ["試唱判定", "苦しい"], ["想定キー差", -2], ["最高音(国際式)", "B4"],
+    ["ステータス", "⭐有力"], ["オクターブ調整", -1], ["高音頻度", "多"],
+    ["高音連続性", "高"], ["サビ平均負荷", "中"]
+  ];
+  return {
+    cols: entries.map(([label]) => ({ label })),
+    rows: [{ c: entries.map(([, value]) => ({ v: value })) }]
+  };
+}
+
 test("JSONP同期はヘッダー名からA:Qを変換し、前回データを保存する", async () => {
   const appended = [];
   const stored = new Map();
@@ -54,8 +67,49 @@ test("JSONP同期はヘッダー名からA:Qを変換し、前回データを保
     status: "候補", artist: "Test Artist", title: "Test Song", fame: 4, load: 3, identity: 5,
     key: "-1", reason: "理由", test: "", retake: "", originalKey: "Am", topNote: "hiA",
     topNoteIntl: "A4", highNoteFeature: "瞬間音", confidence: "A",
-    imageUrl: "https://example.com/art.jpg", sourceUrl: "https://example.com/source"
+    imageUrl: "https://example.com/art.jpg", sourceUrl: "https://example.com/source",
+    keyShift: "", octaveShift: "", highFrequency: "", highHold: "",
+    highContinuity: "", chorusLoad: "", trialRating: ""
   });
   assert.equal(JSON.parse(stored.get("sakUtaNextSheetCacheV1")).length, 1);
   assert.deepEqual(status.at(-1), ["同期済 1曲", "ok"]);
+});
+
+test("JSONP同期はR:Xを列順ではなくヘッダー名で読み込む", async () => {
+  const appended = [];
+  const data = [];
+  const context = {
+    console,
+    data,
+    render() {},
+    setSyncStatus() {},
+    localStorage: { setItem() {} },
+    setTimeout,
+    clearTimeout,
+    Date,
+    Math,
+    window: { SAK_UTA_CONFIG: { SHEET_GVIZ_URL: "https://example.com/gviz?range=A:X" } },
+    document: {
+      getElementById() { return null; },
+      createElement() { return { remove() {}, onerror: null, src: "" }; },
+      head: { appendChild(script) { appended.push(script); } }
+    }
+  };
+  context.window.window = context.window;
+  vm.createContext(context);
+  vm.runInContext(source, context);
+
+  const callbackName = new URL(appended[0].src).searchParams.get("tqx").replace("responseHandler:", "");
+  context.window[callbackName]({ status: "ok", table: makeReorderedExtendedTable() });
+  await new Promise(resolve => setImmediate(resolve));
+
+  assert.equal(data[0].title, "Extended Song");
+  assert.equal(data[0].artist, "Extended Artist");
+  assert.equal(data[0].keyShift, "-2");
+  assert.equal(data[0].octaveShift, "-1");
+  assert.equal(data[0].highFrequency, "多");
+  assert.equal(data[0].highHold, "ロング");
+  assert.equal(data[0].highContinuity, "高");
+  assert.equal(data[0].chorusLoad, "中");
+  assert.equal(data[0].trialRating, "苦しい");
 });
