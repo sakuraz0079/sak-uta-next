@@ -1,0 +1,9 @@
+{
+  "name": "sak-uta-next",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check app.js && node --check sheet-sync-jsonp.js && node --check detail-enhance.js",
+    "test": "node --test test/*.test.mjs"
+  }
+}

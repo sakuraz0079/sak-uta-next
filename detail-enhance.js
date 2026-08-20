@@ -25,7 +25,7 @@
 
     const diff = note - top;
     if (note <= stable) {
-      return {cls:"safe", icon:"🟢", label:"安定域内", text:`現在の安定域上限より${stable-note}半音低い`};
+      return {cls:"safe", icon:"🟢", label:"安定域内", text:note === stable ? "現在の安定域上限以内" : `現在の安定域上限より${stable-note}半音低い`};
     }
     if (note <= top) {
       return {cls:"edge", icon:"🟡", label:"現在の上限域", text:`現在の上限 ${window.SAK_UTA_CONFIG.VOCAL_PROFILE.currentTop} 以内`};
@@ -37,7 +37,7 @@
   };
 
   const imageBlock = x => x.imageUrl
-    ? `<div class="sdArt hasImage"><img src="${esc(x.imageUrl)}" alt="${esc(x.title)}" onerror="this.parentElement.classList.remove('hasImage');this.remove();"></div>`
+    ? `<div class="sdArt hasImage"><b>♫</b><span>${esc(x.artist)}</span><img src="${esc(x.imageUrl)}" alt="${esc(x.title)}" onerror="this.parentElement.classList.remove('hasImage');this.remove();"></div>`
     : `<div class="sdArt"><b>♫</b><span>${esc(x.artist)}</span></div>`;
 
   window.openDetail = function(x) {
@@ -52,7 +52,7 @@
       favBtn.textContent = favs.has(favKey(x)) ? "★" : "☆";
     };
 
-    const noteLabel = [x.topNote, x.topNoteIntl].filter(Boolean).join(" / ");
+    const noteLabel = x.topNote && x.topNoteIntl ? `${x.topNote}（${x.topNoteIntl}）` : (x.topNote || x.topNoteIntl || "");
     const highSection = noteLabel ? `
       <section class="sdPitchCard">
         <div class="sdPitchTop">
@@ -74,7 +74,7 @@
             <h1>${esc(x.title)}</h1>
             <p>${esc(x.artist)}</p>
           </div>
-          <strong>${esc(x.key || "—")}</strong>
+          ${x.key ? `<strong>${esc(x.key)}</strong>` : ""}
         </div>
       </section>
 
@@ -88,8 +88,8 @@
 
       <section class="sdRows">
         ${x.originalKey ? `<div><small>原曲キー</small><strong>${esc(x.originalKey)}</strong></div>` : ""}
-        <div><small>推奨キー</small><strong>${esc(x.key || "—")}</strong></div>
-        <article><small>選曲理由・おすすめポイント</small><p>${esc(x.reason || "—")}</p></article>
+        ${x.key ? `<div><small>推奨キー</small><strong>${esc(x.key)}</strong></div>` : ""}
+        ${x.reason ? `<article><small>選曲理由・おすすめポイント</small><p>${esc(x.reason)}</p></article>` : ""}
         ${x.test ? `<article><small>試唱結果</small><p>${esc(x.test)}</p></article>` : ""}
         ${x.retake ? `<article><small>再録・再挑戦理由</small><p>${esc(x.retake)}</p></article>` : ""}
       </section>
