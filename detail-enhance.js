@@ -132,6 +132,7 @@
       e.currentTarget.textContent = "コピーしました";
     };
 
+    window.sakUtaDetailReturnY = window.scrollY;
     document.getElementById("detail").showModal();
   };
 })();

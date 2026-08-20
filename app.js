@@ -141,6 +141,7 @@ function openDetail(x){
     </div>`;
   el("prepBtn").onclick=()=>sendToPrep(x);
   el("copyBtn").onclick=async()=>{await navigator.clipboard.writeText(`${x.title} / ${x.artist}\n推奨キー: ${x.key}`);el("copyBtn").textContent="コピーしました";};
+  window.sakUtaDetailReturnY = window.scrollY;
   el("detail").showModal();
 }
 
@@ -159,7 +160,17 @@ document.querySelectorAll(".mood button").forEach(b=>b.onclick=()=>{state.mood=s
 el("favOnly").onclick=()=>{state.favOnly=!state.favOnly;el("favOnly").classList.toggle("active",state.favOnly);render();};
 el("filterJump").onclick=()=>el("statusFilters").scrollIntoView({behavior:"smooth",block:"center"});
 el("moodJump").onclick=()=>document.querySelector(".mood").scrollIntoView({behavior:"smooth",block:"center"});
-el("closeDetail").onclick=()=>el("detail").close();
+const detailDialog=el("detail");
+el("closeDetail").onclick=()=>detailDialog.close();
+detailDialog.addEventListener("click",e=>{
+  if(e.target!==detailDialog || !window.matchMedia("(min-width: 541px) and (hover: hover) and (pointer: fine)").matches) return;
+  const r=detailDialog.getBoundingClientRect();
+  if(e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom) detailDialog.close();
+});
+detailDialog.addEventListener("close",()=>{
+  const y=Number(window.sakUtaDetailReturnY);
+  if(Number.isFinite(y)) requestAnimationFrame(()=>window.scrollTo({top:y,left:0,behavior:"auto"}));
+});
 el("infoBtn").onclick=()=>el("info").showModal();
 el("closeInfo").onclick=()=>el("info").close();
 render();
