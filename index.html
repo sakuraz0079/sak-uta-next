@@ -7,7 +7,7 @@
 <title>sak_Uta NEXT</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="detail-enhance.css?v=20260820-2">
+<link rel="stylesheet" href="detail-enhance.css?v=20260820-4">
 </head>
 <body>
 <header class="topbar">
@@ -78,10 +78,27 @@
   </div>
 </dialog>
 
-<script src="config.js"></script>
-<script src="data.js"></script>
-<script src="app.js"></script>
-<script src="sheet-sync-jsonp.js"></script>
-<script src="detail-enhance.js?v=20260820-2"></script>
+<script src="config.js?v=20260820-4"></script>
+<script src="data.js?v=20260820-4"></script>
+<script src="app.js?v=20260820-4"></script>
+<script src="sheet-sync-jsonp.js?v=20260820-4"></script>
+<script src="detail-enhance.js?v=20260820-4"></script>
+<script>
+(async () => {
+  if ("serviceWorker" in navigator) {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) await reg.unregister();
+    } catch (e) {}
+  }
+  if ("caches" in window) {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    } catch (e) {}
+  }
+})();
+</script>
+
 </body>
 </html>

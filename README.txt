@@ -1,16 +1,16 @@
-sak_Uta NEXT 詳細画面 v2
+sak_Uta NEXT 詳細画面 v3 / K:Q対応・モバイル更新対策版
 
-GitHubリポジトリ直下へ以下を上書きしてください:
+GitHubリポジトリ直下へ以下を上書きしてください。
 - index.html
 - 404.html
 - config.js
 - sheet-sync-jsonp.js
 - detail-enhance.js
 - detail-enhance.css
+- sw.js
 
-変更点:
-- Google Sheets同期範囲 A:T
-- 原曲キー/最高音/国際式音名/高音特徴/情報確度/画像URL/情報ソースを取得
-- 画像URLがあれば詳細画面上部に表示
-- 最高音があれば現在の歌唱域(A4安定、A#4上限)と自動比較
-- 未入力情報は非表示
+Google Sheets:
+A:J 既存候補情報
+K:Q 原曲キー / 最高音 / 最高音(国際式) / 高音特徴 / 情報確度 / 画像URL / 情報ソース
+
+開発中は古いService Workerキャッシュを解除し、CSS/JSにも更新番号を付与しています。
