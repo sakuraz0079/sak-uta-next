@@ -16,7 +16,7 @@ const el = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const stars = n => "★".repeat(Math.max(0,Math.min(5,n)))+"☆".repeat(Math.max(0,5-n));
 const keyOf = x => `${x.artist}||${x.title}`;
-const priorityScore = x => (x.status==="⭐有力"?30:0)+(x.identity*4)+(x.fame*2)-(x.load*.6);
+const priorityScore = x => (favs.has(keyOf(x))?30:0)+(x.identity*4)+(x.fame*2)-(x.load*.6);
 
 function starCount(v){
   const s=String(v||"");
@@ -36,11 +36,10 @@ function setSyncStatus(text,cls=""){
 function renderFilters(){
   const filters=window.SAK_UTA_LIST_FILTERS;
   const buttons = values => values.map(value => {
-    const count=data.filter(song=>filters.matches(value,song.status)).length;
+    const count=data.filter(song=>filters.matches(value,song.status,favs.has(keyOf(song)))).length;
     return `<button class="${state.status===value?"active":""}" data-status="${value}"><span>${value}</span><small>${count}</small></button>`;
   }).join("");
-  el("statusFilters").innerHTML=buttons(filters.main);
-  el("historyFilters").innerHTML=buttons(filters.history);
+  el("statusFilters").innerHTML=buttons(filters.all);
   document.querySelectorAll("[data-status]").forEach(button=>button.onclick=()=>{state.status=button.dataset.status;render();});
 }
 
@@ -48,7 +47,7 @@ function filtered(){
   let arr = data.filter(x=>{
     const q = state.query.toLowerCase();
     const qok = !q || `${x.artist} ${x.title}`.toLowerCase().includes(q);
-    const sok = window.SAK_UTA_LIST_FILTERS.matches(state.status,x.status);
+    const sok = window.SAK_UTA_LIST_FILTERS.matches(state.status,x.status,favs.has(keyOf(x)));
     const fok = !state.favOnly || favs.has(keyOf(x));
     return qok && sok && fok;
   });
@@ -64,24 +63,25 @@ function filtered(){
 
 function badgeClass(s){
   if(s==="歌唱済") return "done";
-  if(s.includes("挑戦")) return "challenge";
   if(s==="リクエスト") return "request";
-  if(s.includes("再")) return "retry";
+  if(s==="再録") return "retry";
+  if(s==="コラボ") return "collab";
+  if(s==="見送り") return "shelved";
   return "";
 }
 
 function card(x){
   const f = favs.has(keyOf(x));
+  const tag=window.SAK_UTA_LIST_FILTERS.tag(x.status);
   return `<article class="card" data-k="${encodeURIComponent(keyOf(x))}">
     <div class="cardTop">
       <div class="cardText">
-        <div class="cardHeading"><span class="badge ${badgeClass(x.status)}">${esc(x.status)}</span><span class="title">${esc(x.title)}</span></div>
-        <div class="artist">${esc(x.artist)}</div>
+        <div class="cardHeading">${f?`<span class="badge">★ 有力</span>`:""}${tag?`<span class="badge ${badgeClass(tag)}">${esc(tag)}</span>`:""}<span class="title">${esc(x.title)}</span><span class="artistInline">${esc(x.artist)}</span></div>
       </div>
       <button class="favMini" data-fav="${encodeURIComponent(keyOf(x))}">${f?"★":"☆"}</button>
     </div>
     <div class="cardInfo">
-      <span>知名 <b>★${x.fame}</b></span><span>負荷 <b>★${x.load}</b></span><span>自分 <b>★${x.identity}</b></span>
+      <span>知名度 <b>★${x.fame}</b></span><span>負荷 <b>★${x.load}</b></span><span>自分 <b>★${x.identity}</b></span>
       ${x.key?`<span class="compactKey">キー ${esc(x.key)}</span>`:""}
     </div>
   </article>`;
@@ -147,7 +147,7 @@ el("search").oninput=e=>{state.query=e.target.value;render();};
 el("sort").onchange=e=>{state.sort=e.target.value;render();};
 el("favOnly").onclick=()=>{state.favOnly=!state.favOnly;el("favOnly").classList.toggle("active",state.favOnly);render();};
 el("filterJump").onclick=()=>el("statusFilters").scrollIntoView({behavior:"smooth",block:"center"});
-el("historyJump").onclick=()=>el("historyGroup").scrollIntoView({behavior:"smooth",block:"center"});
+el("historyJump").onclick=()=>{const filters=el("statusFilters");filters.scrollIntoView({behavior:"smooth",block:"center"});filters.scrollTo({left:filters.scrollWidth,behavior:"smooth"});};
 const detailDialog=el("detail");
 el("closeDetail").onclick=()=>detailDialog.close();
 detailDialog.addEventListener("click",e=>{

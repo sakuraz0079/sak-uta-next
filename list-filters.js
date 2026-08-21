@@ -2,17 +2,27 @@
   const HISTORY_STATUSES = new Set(["歌唱済", "見送り"]);
   const main = ["すべて", "有力", "リクエスト", "再録", "コラボ"];
   const history = ["見送り", "歌唱済"];
+  const all = [...main, ...history];
 
-  const matches = (filter, status) => {
+  const tag = status => {
+    if (status === "リクエスト") return "リクエスト";
+    if (status === "再録候補" || status === "再挑戦") return "再録";
+    if (status === "コラボ") return "コラボ";
+    if (status === "見送り") return "見送り";
+    if (status === "歌唱済") return "歌唱済";
+    return "";
+  };
+
+  const toStatus = value => ({
+    "リクエスト": "リクエスト", "再録": "再録候補", "コラボ": "コラボ"
+  }[value] || "候補");
+
+  const matches = (filter, status, isFavorite = false) => {
     if (filter === "すべて") return !HISTORY_STATUSES.has(status);
-    if (filter === "有力") return status === "⭐有力";
-    if (filter === "リクエスト") return status === "リクエスト";
-    if (filter === "再録") return status === "再録候補" || status === "再挑戦";
-    if (filter === "コラボ") return status === "コラボ";
-    if (filter === "見送り") return status === "見送り";
-    if (filter === "歌唱済") return status === "歌唱済";
+    if (filter === "有力") return isFavorite && !HISTORY_STATUSES.has(status);
+    if (filter !== "すべて") return tag(status) === filter;
     return false;
   };
 
-  window.SAK_UTA_LIST_FILTERS = { main, history, matches };
+  window.SAK_UTA_LIST_FILTERS = { main, history, all, tag, toStatus, matches };
 })();

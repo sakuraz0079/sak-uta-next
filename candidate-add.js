@@ -30,11 +30,13 @@
   form.onsubmit = async event => {
     event.preventDefault();
     const values = new FormData(form);
+    const selectedStatus = String(values.get("status") || "候補");
+    const wantsFavorite = selectedStatus === "⭐有力";
     const payload = {
       action: "add",
       artist: String(values.get("artist") || "").trim(),
       title: String(values.get("title") || "").trim(),
-      status: String(values.get("status") || "候補"),
+      status: wantsFavorite ? "候補" : selectedStatus,
       key: String(values.get("key") || "").trim(),
       reason: String(values.get("reason") || "").trim()
     };
@@ -42,6 +44,8 @@
 
     const existing = findDuplicate(typeof data === "undefined" ? [] : data, payload.artist, payload.title);
     if (existing) {
+      const existingKey = `${existing.artist}||${existing.title}`;
+      if (wantsFavorite && typeof favs !== "undefined" && !favs.has(existingKey) && typeof toggleFav === "function") toggleFav(existingKey);
       status.textContent = "登録済みです。既存の詳細を開きます";
       setTimeout(() => { close(); window.openDetail(existing); }, 450);
       return;
@@ -54,6 +58,8 @@
       await window.SAK_UTA_SHEET_WRITE.submit(payload);
       const added = findDuplicate(typeof data === "undefined" ? [] : data, payload.artist, payload.title);
       if (!added) throw new Error("反映を確認できませんでした");
+      const addedKey = `${added.artist}||${added.title}`;
+      if (wantsFavorite && typeof favs !== "undefined" && !favs.has(addedKey) && typeof toggleFav === "function") toggleFav(addedKey);
       status.textContent = "登録しました";
       setTimeout(() => { close(); window.openDetail(added); }, 450);
     } catch (error) {

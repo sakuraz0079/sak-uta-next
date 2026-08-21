@@ -45,8 +45,12 @@ function doPost(e) {
       sheet.getRange(row, col("歌唱済み日")).setValue(new Date());
       if (currentStatus !== "歌唱済") sheet.getRange(row, col("歌唱済み前ステータス")).setValue(currentStatus || "候補");
       sheet.getRange(row, col("ステータス")).setValue("歌唱済");
+    } else if (p.action === "tag") {
+      const allowed = ["候補", "リクエスト", "再録候補", "コラボ"];
+      if (!allowed.includes(p.status)) throw new Error("invalid tag status");
+      sheet.getRange(row, col("ステータス")).setValue(p.status);
     } else if (p.action === "add") {
-      const allowed = ["⭐有力", "候補", "挑戦", "穴候補", "リクエスト", "再録候補", "再挑戦", "コラボ", "保留"];
+      const allowed = ["候補", "リクエスト", "再録候補", "コラボ"];
       const newArtist = String(p.artist || "").trim().slice(0, 200);
       const newTitle = String(p.title || "").trim().slice(0, 200);
       const newStatus = String(p.status || "候補");
