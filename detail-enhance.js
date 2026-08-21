@@ -10,6 +10,9 @@
   const optionTags = (values, current) => values.map(value =>
     `<option value="${esc(value)}"${value === current ? " selected" : ""}>${esc(value)}</option>`
   ).join("");
+  const namedOptionTags = (values, current) => values.map(([value, label]) =>
+    `<option value="${esc(value)}"${value === current ? " selected" : ""}>${esc(label)}</option>`
+  ).join("");
   const sheetEditUrl = (x, start, end) => {
     const base = window.SAK_UTA_CONFIG?.SHEET_EDIT_URL || "";
     const row = Number(x.sheetRow);
@@ -89,6 +92,8 @@
     const isShelved = x.status === "見送り";
     const isSung = x.status === "歌唱済";
     const isHistory = isShelved || isSung;
+    const listTag = window.SAK_UTA_LIST_FILTERS?.tag(x.status) || "";
+    const tagStatus = window.SAK_UTA_LIST_FILTERS?.toStatus(listTag) || "候補";
     const shelvedInfo = isShelved && (x.shelvedReason || x.shelvedMemo || x.shelvedDate) ? `<article>
       <small>見送り記録</small>
       ${x.shelvedReason ? `<p><b>${esc(x.shelvedReason)}</b></p>` : ""}
@@ -108,7 +113,14 @@
         ? `<p>「${esc((isSung ? x.sungPreviousStatus : x.previousStatus) || "候補")}」へ戻すと通常一覧に復帰します。これまでの記録は残ります。</p>
            <button class="restore" id="restoreCandidate" type="button">↩ 候補へ戻す</button>
            <span class="sdSaveStatus" id="restoreStatus"></span>`
-        : `<details><summary>📝 試唱結果を記録</summary>
+        : `<details><summary>🏷 一覧タグを変更</summary>
+             <form id="tagForm">
+               <label>一覧タグ<select name="status">${namedOptionTags([["候補", "タグなし（通常候補）"], ["⭐有力", "★ 有力"], ["リクエスト", "リクエスト"], ["再録候補", "再録"], ["コラボ", "コラボ"]], tagStatus)}</select></label>
+               <p class="sdFormHint">一覧のタグと絞り込みへ同じ名前で反映されます。</p>
+               <button type="submit">タグを保存する</button><span class="sdSaveStatus"></span>
+             </form>
+           </details>
+           <details><summary>📝 試唱結果を記録</summary>
              <form id="trialForm">
                <label>試唱判定<select name="trialRating">${optionTags(["未試唱", "余裕", "歌える", "苦しい", "不可"], x.trialRating || "未試唱")}</select></label>
                <label>試唱メモ<textarea name="test" rows="3" maxlength="1000" placeholder="サビは出るが後半で苦しい、など">${esc(x.test || "")}</textarea></label>
@@ -140,7 +152,7 @@
         ${imageBlock(x)}
         <div class="sdTitle">
           <div>
-            <span class="badge">${esc(x.status)}</span>
+            ${listTag ? `<span class="badge">${listTag === "有力" ? "★ " : ""}${esc(listTag)}</span>` : ""}
             <h1>${esc(x.title)}</h1>
             <p>${esc(x.artist)}</p>
           </div>
@@ -217,6 +229,14 @@
       const test = String(values.get("test") || "");
       save(trialForm, { action:"trial", row:x.sheetRow, artist:x.artist, title:x.title, trialRating, test },
         updated => updated.trialRating === trialRating && updated.test === test);
+    };
+    const tagForm = document.getElementById("tagForm");
+    if (tagForm) tagForm.onsubmit = event => {
+      event.preventDefault();
+      const values = new FormData(tagForm);
+      const statusValue = String(values.get("status") || "候補");
+      save(tagForm, { action:"tag", row:x.sheetRow, artist:x.artist, title:x.title, status:statusValue },
+        updated => updated.status === statusValue);
     };
     const shelveForm = document.getElementById("shelveForm");
     if (shelveForm) shelveForm.onsubmit = event => {

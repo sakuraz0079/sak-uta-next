@@ -58,6 +58,9 @@ test("画像URLが壊れても音符プレースホルダーを残す", () => {
 
 test("候補の試唱記録と見送りを詳細画面内で入力できる", () => {
   const html = renderDetail();
+  assert.match(html, /一覧タグを変更/);
+  assert.match(html, /id="tagForm"/);
+  assert.match(html, /再録候補/);
   assert.match(html, /試唱結果を記録/);
   assert.match(html, /name="trialRating"/);
   assert.match(html, /今回は見送る/);

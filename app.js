@@ -39,8 +39,7 @@ function renderFilters(){
     const count=data.filter(song=>filters.matches(value,song.status)).length;
     return `<button class="${state.status===value?"active":""}" data-status="${value}"><span>${value}</span><small>${count}</small></button>`;
   }).join("");
-  el("statusFilters").innerHTML=buttons(filters.main);
-  el("historyFilters").innerHTML=buttons(filters.history);
+  el("statusFilters").innerHTML=buttons(filters.all);
   document.querySelectorAll("[data-status]").forEach(button=>button.onclick=()=>{state.status=button.dataset.status;render();});
 }
 
@@ -64,19 +63,20 @@ function filtered(){
 
 function badgeClass(s){
   if(s==="歌唱済") return "done";
-  if(s.includes("挑戦")) return "challenge";
   if(s==="リクエスト") return "request";
-  if(s.includes("再")) return "retry";
+  if(s==="再録") return "retry";
+  if(s==="コラボ") return "collab";
+  if(s==="見送り") return "shelved";
   return "";
 }
 
 function card(x){
   const f = favs.has(keyOf(x));
+  const tag=window.SAK_UTA_LIST_FILTERS.tag(x.status);
   return `<article class="card" data-k="${encodeURIComponent(keyOf(x))}">
     <div class="cardTop">
       <div class="cardText">
-        <div class="cardHeading"><span class="badge ${badgeClass(x.status)}">${esc(x.status)}</span><span class="title">${esc(x.title)}</span></div>
-        <div class="artist">${esc(x.artist)}</div>
+        <div class="cardHeading">${tag?`<span class="badge ${badgeClass(tag)}">${tag==="有力"?"★ ":""}${esc(tag)}</span>`:""}<span class="title">${esc(x.title)}</span><span class="artistInline">${esc(x.artist)}</span></div>
       </div>
       <button class="favMini" data-fav="${encodeURIComponent(keyOf(x))}">${f?"★":"☆"}</button>
     </div>
@@ -147,7 +147,7 @@ el("search").oninput=e=>{state.query=e.target.value;render();};
 el("sort").onchange=e=>{state.sort=e.target.value;render();};
 el("favOnly").onclick=()=>{state.favOnly=!state.favOnly;el("favOnly").classList.toggle("active",state.favOnly);render();};
 el("filterJump").onclick=()=>el("statusFilters").scrollIntoView({behavior:"smooth",block:"center"});
-el("historyJump").onclick=()=>el("historyGroup").scrollIntoView({behavior:"smooth",block:"center"});
+el("historyJump").onclick=()=>{const filters=el("statusFilters");filters.scrollIntoView({behavior:"smooth",block:"center"});filters.scrollTo({left:filters.scrollWidth,behavior:"smooth"});};
 const detailDialog=el("detail");
 el("closeDetail").onclick=()=>detailDialog.close();
 detailDialog.addEventListener("click",e=>{
