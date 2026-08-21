@@ -19,16 +19,16 @@ test("すべてから履歴を除外し、再録へ再挑戦もまとめる", ()
   assert.equal(filters.matches("すべて", "候補"), true);
   assert.equal(filters.matches("すべて", "見送り"), false);
   assert.equal(filters.matches("すべて", "歌唱済"), false);
-  assert.equal(filters.matches("有力", "⭐有力"), true);
+  assert.equal(filters.matches("有力", "候補", true), true);
+  assert.equal(filters.matches("有力", "⭐有力", false), false);
   assert.equal(filters.matches("再録", "再録候補"), true);
   assert.equal(filters.matches("再録", "再挑戦"), true);
 });
 
 test("旧ステータスを一覧と同じタグ名へ統一する", () => {
-  assert.equal(filters.tag("⭐有力"), "有力");
+  assert.equal(filters.tag("⭐有力"), "");
   assert.equal(filters.tag("再録候補"), "再録");
   assert.equal(filters.tag("挑戦"), "");
-  assert.equal(filters.toStatus("有力"), "⭐有力");
   assert.equal(filters.toStatus("再録"), "再録候補");
   assert.equal(filters.toStatus(""), "候補");
 });

@@ -5,7 +5,6 @@
   const all = [...main, ...history];
 
   const tag = status => {
-    if (status === "⭐有力") return "有力";
     if (status === "リクエスト") return "リクエスト";
     if (status === "再録候補" || status === "再挑戦") return "再録";
     if (status === "コラボ") return "コラボ";
@@ -15,11 +14,12 @@
   };
 
   const toStatus = value => ({
-    "有力": "⭐有力", "リクエスト": "リクエスト", "再録": "再録候補", "コラボ": "コラボ"
+    "リクエスト": "リクエスト", "再録": "再録候補", "コラボ": "コラボ"
   }[value] || "候補");
 
-  const matches = (filter, status) => {
+  const matches = (filter, status, isFavorite = false) => {
     if (filter === "すべて") return !HISTORY_STATUSES.has(status);
+    if (filter === "有力") return isFavorite && !HISTORY_STATUSES.has(status);
     if (filter !== "すべて") return tag(status) === filter;
     return false;
   };

@@ -94,6 +94,7 @@
     const isHistory = isShelved || isSung;
     const listTag = window.SAK_UTA_LIST_FILTERS?.tag(x.status) || "";
     const tagStatus = window.SAK_UTA_LIST_FILTERS?.toStatus(listTag) || "候補";
+    const isFavorite = typeof favs !== "undefined" && favs.has(favKey(x));
     const shelvedInfo = isShelved && (x.shelvedReason || x.shelvedMemo || x.shelvedDate) ? `<article>
       <small>見送り記録</small>
       ${x.shelvedReason ? `<p><b>${esc(x.shelvedReason)}</b></p>` : ""}
@@ -115,8 +116,8 @@
            <span class="sdSaveStatus" id="restoreStatus"></span>`
         : `<details><summary>🏷 一覧タグを変更</summary>
              <form id="tagForm">
-               <label>一覧タグ<select name="status">${namedOptionTags([["候補", "タグなし（通常候補）"], ["⭐有力", "★ 有力"], ["リクエスト", "リクエスト"], ["再録候補", "再録"], ["コラボ", "コラボ"]], tagStatus)}</select></label>
-               <p class="sdFormHint">一覧のタグと絞り込みへ同じ名前で反映されます。</p>
+               <label>一覧タグ<select name="status">${namedOptionTags([["候補", "タグなし（通常候補）"], ["リクエスト", "リクエスト"], ["再録候補", "再録"], ["コラボ", "コラボ"]], tagStatus)}</select></label>
+               <p class="sdFormHint">★お気に入りを付けた曲は「有力」になります。それ以外のタグをここで変更できます。</p>
                <button type="submit">タグを保存する</button><span class="sdSaveStatus"></span>
              </form>
            </details>
@@ -152,7 +153,8 @@
         ${imageBlock(x)}
         <div class="sdTitle">
           <div>
-            ${listTag ? `<span class="badge">${listTag === "有力" ? "★ " : ""}${esc(listTag)}</span>` : ""}
+            ${isFavorite ? `<span class="badge">★ 有力</span>` : ""}
+            ${listTag ? `<span class="badge">${esc(listTag)}</span>` : ""}
             <h1>${esc(x.title)}</h1>
             <p>${esc(x.artist)}</p>
           </div>
