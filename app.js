@@ -9,9 +9,8 @@ function readSheetCache(){
 }
 
 let data = readSheetCache();
-const state = {status:"すべて", mood:null, query:"", sort:"priority", favOnly:false};
+const state = {status:"すべて", query:"", sort:"priority", favOnly:false};
 const favs = new Set(JSON.parse(localStorage.getItem("sakUtaNextFavs") || "[]"));
-const HISTORY_STATUSES = new Set(["歌唱済", "見送り"]);
 
 const el = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
@@ -34,33 +33,24 @@ function setSyncStatus(text,cls=""){
   s.className=`syncStatus ${cls}`.trim();
 }
 
-function statuses(){
-  const active=[...new Set(data.map(x=>x.status).filter(s=>s && !HISTORY_STATUSES.has(s)))];
-  return ["すべて", ...active, "歌唱済", "見送り"];
-}
-
 function renderFilters(){
-  el("statusFilters").innerHTML = statuses().map(s=>`<button class="${state.status===s?"active":""}" data-status="${s}">${s}</button>`).join("");
-  el("statusFilters").querySelectorAll("button").forEach(b=>b.onclick=()=>{state.status=b.dataset.status;render();});
-}
-
-function matchesMood(x){
-  if(!state.mood) return true;
-  if(state.mood==="hot") return x.load>=4 && x.identity>=4;
-  if(state.mood==="challenge") return x.load===4;
-  if(state.mood==="easy") return x.load<=2;
-  if(state.mood==="famous") return x.fame>=5;
-  if(state.mood==="identity") return x.identity>=5;
-  return true;
+  const filters=window.SAK_UTA_LIST_FILTERS;
+  const buttons = values => values.map(value => {
+    const count=data.filter(song=>filters.matches(value,song.status)).length;
+    return `<button class="${state.status===value?"active":""}" data-status="${value}"><span>${value}</span><small>${count}</small></button>`;
+  }).join("");
+  el("statusFilters").innerHTML=buttons(filters.main);
+  el("historyFilters").innerHTML=buttons(filters.history);
+  document.querySelectorAll("[data-status]").forEach(button=>button.onclick=()=>{state.status=button.dataset.status;render();});
 }
 
 function filtered(){
   let arr = data.filter(x=>{
     const q = state.query.toLowerCase();
     const qok = !q || `${x.artist} ${x.title}`.toLowerCase().includes(q);
-    const sok = state.status==="すべて" ? !HISTORY_STATUSES.has(x.status) : x.status===state.status;
+    const sok = window.SAK_UTA_LIST_FILTERS.matches(state.status,x.status);
     const fok = !state.favOnly || favs.has(keyOf(x));
-    return qok && sok && fok && matchesMood(x);
+    return qok && sok && fok;
   });
   arr.sort((a,b)=>{
     if(state.sort==="fame") return b.fame-a.fame;
@@ -84,25 +74,21 @@ function card(x){
   const f = favs.has(keyOf(x));
   return `<article class="card" data-k="${encodeURIComponent(keyOf(x))}">
     <div class="cardTop">
-      <div>
-        <span class="badge ${badgeClass(x.status)}">${esc(x.status)}</span>
-        <div class="title">${esc(x.title)}</div>
+      <div class="cardText">
+        <div class="cardHeading"><span class="badge ${badgeClass(x.status)}">${esc(x.status)}</span><span class="title">${esc(x.title)}</span></div>
         <div class="artist">${esc(x.artist)}</div>
       </div>
       <button class="favMini" data-fav="${encodeURIComponent(keyOf(x))}">${f?"★":"☆"}</button>
     </div>
-    <div class="metrics">
-      <div class="metric"><label>知名度</label><div class="stars">${stars(x.fame)}</div></div>
-      <div class="metric"><label>音域負荷</label><div class="stars">${stars(x.load)}</div></div>
-      <div class="metric"><label>自分らしさ</label><div class="stars">${stars(x.identity)}</div></div>
-      <div class="keybox">${esc(x.key||"—")}</div>
+    <div class="cardInfo">
+      <span>知名 <b>★${x.fame}</b></span><span>負荷 <b>★${x.load}</b></span><span>自分 <b>★${x.identity}</b></span>
+      ${x.key?`<span class="compactKey">キー ${esc(x.key)}</span>`:""}
     </div>
   </article>`;
 }
 
 function render(){
   renderFilters();
-  document.querySelectorAll(".mood button").forEach(b=>b.classList.toggle("active",b.dataset.mood===state.mood));
   const arr = filtered();
   el("count").textContent = `${arr.length}曲`;
   el("list").innerHTML = arr.map(card).join("") || `<div class="card">条件に合う曲がありません</div>`;
@@ -159,10 +145,9 @@ function sendToPrep(x){
 
 el("search").oninput=e=>{state.query=e.target.value;render();};
 el("sort").onchange=e=>{state.sort=e.target.value;render();};
-document.querySelectorAll(".mood button").forEach(b=>b.onclick=()=>{state.mood=state.mood===b.dataset.mood?null:b.dataset.mood;render();});
 el("favOnly").onclick=()=>{state.favOnly=!state.favOnly;el("favOnly").classList.toggle("active",state.favOnly);render();};
 el("filterJump").onclick=()=>el("statusFilters").scrollIntoView({behavior:"smooth",block:"center"});
-el("moodJump").onclick=()=>document.querySelector(".mood").scrollIntoView({behavior:"smooth",block:"center"});
+el("historyJump").onclick=()=>el("historyGroup").scrollIntoView({behavior:"smooth",block:"center"});
 const detailDialog=el("detail");
 el("closeDetail").onclick=()=>detailDialog.close();
 detailDialog.addEventListener("click",e=>{
